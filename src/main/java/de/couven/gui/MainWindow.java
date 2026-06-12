@@ -84,5 +84,12 @@ public class MainWindow {
         frame.pack();
         frame.setLocationRelativeTo(null);
         frame.setVisible(true);
+
+        // --- START: Fokus-Fix ---
+        // Erlaubt dem Panel, den Fokus zu bekommen
+        mainPanel.setFocusable(true);
+        // Setzt den Fokus auf das Panel, weg vom Textfeld
+        mainPanel.requestFocusInWindow();
+        // --- ENDE: Fokus-Fix ---
     }
 }

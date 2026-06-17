@@ -1,26 +1,38 @@
 package de.couven.token;
 
+/**
+ * Alle Token-Typen der Grammatik mit ihrer Nummer (0-16) gemaess Token-Tabelle.
+ * EOF ist ein interner Sentinel und gehoert nicht zur Tabelle (Nummer -1).
+ */
 public enum TokenType {
 
-    KLASSE, // klasse -> class
-    TYP,          // typ -> int, string, void, etc.
-    NAME,         // name (IDENTIFIER) -> main
-    KLAMMERAUF,   // klammerauf -> (
-    KLAMMERZU,    // klammerzu -> )
-    BLOCKAUF,     // blockauf -> {
-    BLOCKZU,      // blockzu -> }
+    FEHLER(0),
+    KLASSE(1),
+    TYP(2),
+    BLOCKAUF(3),
+    BLOCKZU(4),
+    SEMIKOLON(5),
+    KLAMMERAUF(6),
+    KLAMMERZU(7),
+    ZUWEISUNGSOP(8),
+    PUNKTOP(9),
+    STRICHOP(10),
+    ZAHL(11),
+    NAME(12),
+    VERGLOP(13),
+    WENN(14),
+    SONST(15),
+    SOLANGE(16),
 
-    ZUWEISUNGSOP,  // zuweisungsoperator -> =
-    SEMIKOLON,    // semikolon -> ;
-    STRICHOP, // strichoperator -> + or -
-    PUNKTOP,  // punktoperator -> * or /
-    VERGLEICHOP, // vergleichsoperator -> ==, !=, <, >, <=, >=
+    EOF(-1);
 
-    WENN,
-    SONST,
-    SOLANGE,
-    FÜR,
+    private final int nummer;
 
-    ZAHL,         // zahl
+    TokenType(int nummer) {
+        this.nummer = nummer;
+    }
+
+    public int nummer() {
+        return nummer;
+    }
 }
-

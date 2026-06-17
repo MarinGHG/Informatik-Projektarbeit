@@ -1,5 +1,7 @@
 package de.couven.scanner;
 
+import de.couven.token.Position;
+import de.couven.token.Token;
 import de.couven.token.TokenType;
 
 import java.util.ArrayList;
@@ -9,6 +11,8 @@ public class Scanner {
 
     private String input;
     private int pos = 0;
+    private int line = 1;
+    private int col = 1;
 
     public Scanner(String input) {
         this.input = input;
@@ -23,7 +27,17 @@ public class Scanner {
     }
 
     private void advance() {
+        if (current() == '\n') {
+            line++;
+            col = 1;
+        } else {
+            col++;
+        }
         pos++;
+    }
+
+    private Position here() {
+        return new Position(line, col);
     }
 
     private void skipWhitespace() {
@@ -35,6 +49,7 @@ public class Scanner {
 
     private Token readNumber() {
 
+        Position start = here();
         StringBuilder sb = new StringBuilder();
 
         while (Character.isDigit(current())) {
@@ -42,11 +57,12 @@ public class Scanner {
             advance();
         }
 
-        return new Token(TokenType.NUMBER, sb.toString());
+        return new Token(TokenType.ZAHL, sb.toString(), start);
     }
 
     private Token readIdentifier() {
 
+        Position start = here();
         StringBuilder sb = new StringBuilder();
 
         while (Character.isLetterOrDigit(current())
@@ -61,19 +77,23 @@ public class Scanner {
         switch (word) {
 
             case "if":
-                return new Token(TokenType.IF, word);
+                return new Token(TokenType.WENN, word, start);
 
             case "else":
-                return new Token(TokenType.ELSE, word);
+                return new Token(TokenType.SONST, word, start);
+
+            case "while":
+                return new Token(TokenType.SOLANGE, word, start);
+
+            case "class":
+                return new Token(TokenType.KLASSE, word, start);
 
             case "void":
-                return new Token(TokenType.VOID, word);
-
             case "int":
-                return new Token(TokenType.INT, word);
+                return new Token(TokenType.TYP, word, start);
 
             default:
-                return new Token(TokenType.IDENTIFIER, word);
+                return new Token(TokenType.NAME, word, start);
         }
     }
 
@@ -98,6 +118,8 @@ public class Scanner {
                 continue;
             }
 
+            Position start = here();
+
             switch (current()) {
 
                 case '=':
@@ -106,66 +128,68 @@ public class Scanner {
                     if (current() == '=') {
                         advance();
                         tokens.add(
-                                new Token(TokenType.EQUALS, "=="));
+                                new Token(TokenType.VERGLOP, "==", start));
                     } else {
                         tokens.add(
-                                new Token(TokenType.ASSIGN, "="));
+                                new Token(TokenType.ZUWEISUNGSOP, "=", start));
                     }
                     break;
 
                 case '+':
-                    tokens.add(new Token(TokenType.PLUS, "+"));
+                    tokens.add(new Token(TokenType.STRICHOP, "+", start));
                     advance();
                     break;
 
                 case '-':
-                    tokens.add(new Token(TokenType.MINUS, "-"));
+                    tokens.add(new Token(TokenType.STRICHOP, "-", start));
                     advance();
                     break;
 
                 case '*':
-                    tokens.add(new Token(TokenType.MULTIPLY, "*"));
+                    tokens.add(new Token(TokenType.PUNKTOP, "*", start));
                     advance();
                     break;
 
                 case '/':
-                    tokens.add(new Token(TokenType.DIVIDE, "/"));
+                    tokens.add(new Token(TokenType.PUNKTOP, "/", start));
                     advance();
                     break;
 
                 case '(':
-                    tokens.add(new Token(TokenType.LPAREN, "("));
+                    tokens.add(new Token(TokenType.KLAMMERAUF, "(", start));
                     advance();
                     break;
 
                 case ')':
-                    tokens.add(new Token(TokenType.RPAREN, ")"));
+                    tokens.add(new Token(TokenType.KLAMMERZU, ")", start));
                     advance();
                     break;
 
                 case '{':
-                    tokens.add(new Token(TokenType.LBRACE, "{"));
+                    tokens.add(new Token(TokenType.BLOCKAUF, "{", start));
                     advance();
                     break;
 
                 case '}':
-                    tokens.add(new Token(TokenType.RBRACE, "}"));
+                    tokens.add(new Token(TokenType.BLOCKZU, "}", start));
                     advance();
                     break;
 
                 case ';':
                     tokens.add(
-                            new Token(TokenType.SEMICOLON, ";"));
+                            new Token(TokenType.SEMIKOLON, ";", start));
                     advance();
                     break;
 
                 default:
-                    throw new RuntimeException(
-                            "Ungültiges Zeichen: " + current());
+                    tokens.add(new Token(
+                            TokenType.FEHLER, String.valueOf(current()), start));
+                    advance();
+                    break;
             }
         }
 
-        tokens.add(new Token(TokenType.EOF, ""));
+        tokens.add(new Token(TokenType.EOF, "", here()));
 
         return tokens;
     }

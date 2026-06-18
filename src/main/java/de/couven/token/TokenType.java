@@ -23,6 +23,7 @@ public enum TokenType {
     WENN(14),
     SONST(15),
     SOLANGE(16),
+    FUER(17),
 
     EOF(-1);
 

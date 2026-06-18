@@ -165,7 +165,7 @@ public class Tokenizer {
             case "else" -> new Token(TokenType.SONST, text, start);
             case "while" -> new Token(TokenType.SOLANGE, text, start);
             case "for" -> new Token(TokenType.FUER, text, start);
-            case "int", "string", "void" -> new Token(TokenType.TYP, text, start);
+            case "int", "String", "void" -> new Token(TokenType.TYP, text, start);
             default -> new Token(TokenType.NAME, text, start);
         };
     }

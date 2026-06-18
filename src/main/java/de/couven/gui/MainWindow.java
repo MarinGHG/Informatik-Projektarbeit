@@ -4,6 +4,11 @@ import javax.swing.*;
 import java.awt.*;
 import java.awt.event.FocusAdapter;
 import java.awt.event.FocusEvent;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import de.couven.scanner.Scanner;
+import de.couven.token.Token;
+import java.util.List;
 
 public class MainWindow {
     public MainWindow(){
@@ -16,10 +21,10 @@ public class MainWindow {
 
         // --- Counter (JLabels) ---
         // Ich habe sie hier zur besseren Sichtbarkeit rot gefaerbt, das kannst du natuerlich aendern
-        JLabel scanCounter = new JLabel("Fehler: 0");
+        JLabel scanCounter = new JLabel("0");
         scanCounter.setForeground(Color.RED);
 
-        JLabel parseCounter = new JLabel("Fehler: 0");
+        JLabel parseCounter = new JLabel("0");
         parseCounter.setForeground(Color.RED);
 
         // --- Textfeld ---
@@ -52,6 +57,57 @@ public class MainWindow {
         });
         // --- ENDE: Placeholder Logik ---
 
+        // --- Token-Nummern-Anzeige (nicht klickbar) ---
+        JTextArea tokenAnzeige = new JTextArea(3, 30);
+        tokenAnzeige.setLineWrap(true);
+        tokenAnzeige.setWrapStyleWord(true);
+        tokenAnzeige.setEditable(false);
+        tokenAnzeige.setFocusable(false);
+        tokenAnzeige.setForeground(Color.GRAY);
+        tokenAnzeige.setText("Token-Nummern werden hier angezeigt...");
+        JScrollPane tokenScrollPane = new JScrollPane(tokenAnzeige);
+
+        // --- START: Event-Listener für den Scannen-Button ---
+        scannen.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                // 1. Text aus dem Textfeld holen
+                String quelltext = textArea.getText();
+
+                // 2. Pruefen, ob nur der Placeholder drin steht
+                if (quelltext.equals(placeholderText) || quelltext.isEmpty()) {
+                    scanCounter.setText("0");
+                    System.out.println("Nichts zu scannen.");
+                    return; // Abbrechen, da kein echter Code da ist
+                }
+
+                // 3. Scanner-Objekt erstellen und Text uebergeben
+                Scanner scanner = new Scanner(quelltext);
+
+                // 4. Scannen ausführen
+                List<Token> tokens = scanner.scan();
+
+                // 5. Den Zaehler in der GUI aktualisieren (nur FEHLER-Token)
+                long fehlerAnzahl = tokens.stream()
+                        .filter(t -> t.type() == de.couven.token.TokenType.FEHLER)
+                        .count();
+                scanCounter.setText(String.valueOf(fehlerAnzahl));
+
+                // 6. Token-Nummern im Format 1->4->2 zusammenbauen
+                StringBuilder sb = new StringBuilder();
+                for (int i = 0; i < tokens.size(); i++) {
+                    if (tokens.get(i).type().nummer() == -1) break; // EOF weglassen
+                    if (sb.length() > 0) sb.append("->");
+                    sb.append(tokens.get(i).type().nummer());
+                }
+                tokenAnzeige.setForeground(Color.BLACK);
+                tokenAnzeige.setText(sb.toString());
+
+
+            }
+        });
+        // --- ENDE: Event-Listener ---
+
         JScrollPane scrollPane = new JScrollPane(textArea);
 
         // --- Layout für die rechte Seite (Buttons + Counter) ---
@@ -73,8 +129,13 @@ public class MainWindow {
         mainPanel.setBorder(BorderFactory.createEmptyBorder(30, 30, 30, 30));
         mainPanel.setLayout(new BorderLayout(15, 0));
 
+        // Linke Seite: Eingabefeld oben, Token-Anzeige unten
+        JPanel leftPanel = new JPanel(new BorderLayout(0, 10));
+        leftPanel.add(scrollPane, BorderLayout.CENTER);
+        leftPanel.add(tokenScrollPane, BorderLayout.SOUTH);
+
         // Elemente dem Haupt-Panel zuweisen
-        mainPanel.add(scrollPane, BorderLayout.CENTER); // Textfeld in die Mitte
+        mainPanel.add(leftPanel, BorderLayout.CENTER); // Textfelder in die Mitte
         mainPanel.add(rightSideWrapper, BorderLayout.EAST); // Unser neuen rechten Bereich einfügen
 
         // --- Fenster-Einstellungen ---

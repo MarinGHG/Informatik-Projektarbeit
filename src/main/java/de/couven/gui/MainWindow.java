@@ -6,8 +6,11 @@ import java.awt.event.FocusAdapter;
 import java.awt.event.FocusEvent;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import de.couven.scanner.Scanner;
+import de.couven.scanner.Tokenizer;
+import de.couven.parser.Parser;
+import de.couven.parser.ParseResult;
 import de.couven.token.Token;
+import de.couven.token.TokenType;
 import java.util.List;
 
 public class MainWindow {
@@ -81,29 +84,84 @@ public class MainWindow {
                     return; // Abbrechen, da kein echter Code da ist
                 }
 
-                // 3. Scanner-Objekt erstellen und Text uebergeben
-                Scanner scanner = new Scanner(quelltext);
+                try {
+                    // 3. Tokenizer erstellen und Quelltext in Tokens zerlegen
+                    List<Token> tokens = new Tokenizer(quelltext).tokenize();
 
-                // 4. Scannen ausführen
-                List<Token> tokens = scanner.scan();
+                    // 4. Den Zaehler in der GUI aktualisieren (nur FEHLER-Token)
+                    long fehlerAnzahl = tokens.stream()
+                            .filter(t -> t.type() == TokenType.FEHLER)
+                            .count();
+                    scanCounter.setText(String.valueOf(fehlerAnzahl));
 
-                // 5. Den Zaehler in der GUI aktualisieren (nur FEHLER-Token)
-                long fehlerAnzahl = tokens.stream()
-                        .filter(t -> t.type() == de.couven.token.TokenType.FEHLER)
-                        .count();
-                scanCounter.setText(String.valueOf(fehlerAnzahl));
-
-                // 6. Token-Nummern im Format 1->4->2 zusammenbauen
-                StringBuilder sb = new StringBuilder();
-                for (int i = 0; i < tokens.size(); i++) {
-                    if (tokens.get(i).type().nummer() == -1) break; // EOF weglassen
-                    if (sb.length() > 0) sb.append("->");
-                    sb.append(tokens.get(i).type().nummer());
+                    // 5. Token-Nummern im Format 1->4->2 zusammenbauen
+                    StringBuilder sb = new StringBuilder();
+                    for (int i = 0; i < tokens.size(); i++) {
+                        if (tokens.get(i).type().nummer() == -1) break; // EOF weglassen
+                        if (sb.length() > 0) sb.append("->");
+                        sb.append(tokens.get(i).type().nummer());
+                    }
+                    tokenAnzeige.setForeground(Color.BLACK);
+                    tokenAnzeige.setText(sb.toString());
+                } catch (RuntimeException ex) {
+                    // Ungueltiges Zeichen o. Ae.: als ein Scan-Fehler werten
+                    scanCounter.setText("1");
+                    tokenAnzeige.setForeground(Color.RED);
+                    tokenAnzeige.setText("Scan-Fehler: " + ex.getMessage());
                 }
-                tokenAnzeige.setForeground(Color.BLACK);
-                tokenAnzeige.setText(sb.toString());
+            }
+        });
+        // --- ENDE: Event-Listener ---
 
+        // --- START: Event-Listener für den Parsen-Button ---
+        parsen.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                // 1. Text aus dem Textfeld holen
+                String quelltext = textArea.getText();
 
+                // 2. Pruefen, ob nur der Placeholder drin steht
+                if (quelltext.equals(placeholderText) || quelltext.isEmpty()) {
+                    parseCounter.setText("0");
+                    System.out.println("Nichts zu parsen.");
+                    return;
+                }
+
+                try {
+                    // 3. Quelltext scannen und anschliessend parsen
+                    List<Token> tokens = new Tokenizer(quelltext).tokenize();
+                    ParseResult result = new Parser(tokens).parse();
+
+                    if (result.ok()) {
+                        // Syntaktisch korrekt: kein Fehler
+                        parseCounter.setText("0");
+                        JOptionPane.showMessageDialog(
+                                frame,
+                                result.message(),
+                                "Parsen erfolgreich",
+                                JOptionPane.INFORMATION_MESSAGE);
+                    } else {
+                        // 4. Parsen fehlgeschlagen: Fehler-Popup anzeigen
+                        parseCounter.setText("1");
+                        String meldung = result.message();
+                        if (result.errorPos() != null) {
+                            meldung += "\n(" + result.errorPos() + ")";
+                        }
+                        JOptionPane.showMessageDialog(
+                                frame,
+                                meldung,
+                                "Syntaxfehler",
+                                JOptionPane.ERROR_MESSAGE);
+                    }
+                } catch (RuntimeException ex) {
+                    // Scan-Fehler (z. B. ungueltiges Zeichen) ebenfalls als Popup melden
+                    parseCounter.setText("1");
+                    JOptionPane.showMessageDialog(
+                            frame,
+                            "Scan-Fehler: " + ex.getMessage(),
+                            "Fehler",
+                            JOptionPane.ERROR_MESSAGE);
+                }
             }
         });
         // --- ENDE: Event-Listener ---

@@ -8,12 +8,17 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Rekursiver-Abstiegs-Parser fuer die reduzierte Mindest-Grammatik:
+ * Rekursiver-Abstiegs-Parser fuer die volle Grammatik (Maximalanforderung):
  *
  * <pre>
  * Methode    -> TYP NAME KLAMMERAUF KLAMMERZU Block
- * Block      -> BLOCKAUF Zuweisung BLOCKZU
+ * Block      -> BLOCKAUF Anwfolg BLOCKZU
+ * Anwfolg    -> (Anweisung)*
+ * Anweisung  -> Block | Zuweisung | BedAnw | SolangeAnw
+ * BedAnw     -> WENN KLAMMERAUF Vergleich KLAMMERZU Anweisung (SONST Anweisung)?
+ * SolangeAnw -> SOLANGE KLAMMERAUF Vergleich KLAMMERZU Anweisung
  * Zuweisung  -> NAME ZUWEISUNGSOP Ausdruck SEMIKOLON
+ * Vergleich  -> Ausdruck VERGLOP Ausdruck
  * Ausdruck   -> Term (STRICHOP Ausdruck)?
  * Term       -> Faktor (PUNKTOP Term)?
  * Faktor     -> NAME | ZAHL | KLAMMERAUF Ausdruck KLAMMERZU
@@ -97,7 +102,7 @@ public class Parser {
         }
     }
 
-    // --- Aeussere (lineare) Regeln --------------------------------------
+    // --- Aeussere Regeln -------------------------------------------------
 
     private void parseMethode() {
         expect(TokenType.TYP);
@@ -109,8 +114,55 @@ public class Parser {
 
     private void parseBlock() {
         expect(TokenType.BLOCKAUF);
-        parseZuweisung();
+        parseAnweisungsfolge();
         expect(TokenType.BLOCKZU);
+    }
+
+    /** Anwfolg -> (Anweisung)* : null bis viele Anweisungen bis zum Blockende. */
+    private void parseAnweisungsfolge() {
+        while (istAnweisungsAnfang(peek().type())) {
+            parseAnweisung();
+        }
+    }
+
+    private boolean istAnweisungsAnfang(TokenType type) {
+        return type == TokenType.BLOCKAUF
+                || type == TokenType.NAME
+                || type == TokenType.WENN
+                || type == TokenType.SOLANGE;
+    }
+
+    private void parseAnweisung() {
+        switch (peek().type()) {
+            case BLOCKAUF -> parseBlock();
+            case WENN -> parseBedingteAnweisung();
+            case SOLANGE -> parseSolangeAnweisung();
+            case NAME -> parseZuweisung();
+            default -> throw new ParseException(
+                    "Erwartet: Anweisung (Block, Zuweisung, WENN oder SOLANGE), "
+                            + "gefunden: " + peek().type(),
+                    peek().position());
+        }
+    }
+
+    private void parseBedingteAnweisung() {
+        expect(TokenType.WENN);
+        expect(TokenType.KLAMMERAUF);
+        parseVergleich();
+        expect(TokenType.KLAMMERZU);
+        parseAnweisung();
+        if (match(TokenType.SONST)) {
+            advance();
+            parseAnweisung();
+        }
+    }
+
+    private void parseSolangeAnweisung() {
+        expect(TokenType.SOLANGE);
+        expect(TokenType.KLAMMERAUF);
+        parseVergleich();
+        expect(TokenType.KLAMMERZU);
+        parseAnweisung();
     }
 
     private void parseZuweisung() {
@@ -121,6 +173,12 @@ public class Parser {
     }
 
     // --- Innere (rekursive) Regeln --------------------------------------
+
+    private void parseVergleich() {
+        parseAusdruck();
+        expect(TokenType.VERGLOP);
+        parseAusdruck();
+    }
 
     private void parseAusdruck() {
         parseTerm();

@@ -100,6 +100,7 @@ public class Tokenizer {
 
                     case '*':
                     case '/':
+                    case '%':
                         tokens.add(
                                 new Token(
                                         TokenType.PUNKTOP,

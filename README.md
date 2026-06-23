@@ -6,8 +6,8 @@
 
 | Name | Rolle |
 |------|-------|
-| Marin Benke | Product Owner & Developer (Planung, Backlog, Delegation) |
-| Jannis Holtmann | Developer (GUI, UML) |
+| Marin Benke | Product Owner & Developer (Planung, Backlog, Delegation, Parser, Review) |
+| Jannis Holtmann | Developer (Parser, GUI, UML) |
 | Diana Butsch | Developer (Scanner / Tokenizer) |
 | Jiayi | Developer (Scanner, Token-Modell, Tests) |
 

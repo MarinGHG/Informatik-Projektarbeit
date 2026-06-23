@@ -64,8 +64,11 @@ Versionskontrolle. Einheitliche IDE: **JetBrains IntelliJ IDEA**.
 | 14 | `if` | `wenn` |
 | 15 | `else` | `sonst` |
 | 16 | `while` | `solange` |
+| 17 | `for` | `fuer` |
 
 `EOF` (-1) ist ein interner Sentinel und gehört nicht zur Tabelle.
+`klasse` (1) und `fuer` (17) werden vom Scanner erkannt, sind aber (noch) nicht
+Teil der geparsten Grammatik.
 
 ---
 

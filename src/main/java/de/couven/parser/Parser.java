@@ -10,7 +10,7 @@ import java.util.List;
 /**
  * Rekursiver-Abstiegs-Parser fuer die volle Grammatik (Maximalanforderung):
  *
- * 
+ * <pre>
  * Methode    -> TYP NAME KLAMMERAUF KLAMMERZU Block
  * Block      -> BLOCKAUF Anwfolg BLOCKZU
  * Anwfolg    -> (Anweisung)*
@@ -22,7 +22,7 @@ import java.util.List;
  * Ausdruck   -> Term (STRICHOP Ausdruck)?
  * Term       -> Faktor (PUNKTOP Term)?
  * Faktor     -> NAME | ZAHL | KLAMMERAUF Ausdruck KLAMMERZU
- * 
+ * </pre>
  *
  * Der Aufrufstack der Methoden bildet das geforderte Stackprinzip ab.
  * Fehler werden intern ueber {@link ParseException} mit Position
@@ -82,8 +82,19 @@ public class Parser {
             return advance();
         }
         throw new ParseException(
-                "Erwartet: " + type + ", gefunden: " + peek().type(),
+                "Erwartet: " + type + ", gefunden: " + beschreibe(peek()),
                 peek().position());
+    }
+
+    /**
+     * Lesbare Beschreibung eines Tokens fuer Fehlermeldungen. Bei einem
+     * FEHLER-Token (ungueltiges Zeichen) wird das Zeichen selbst genannt.
+     */
+    private String beschreibe(Token t) {
+        if (t.type() == TokenType.FEHLER) {
+            return "ungueltiges Zeichen '" + t.lexeme() + "'";
+        }
+        return t.type().toString();
     }
 
     // --- Einstieg --------------------------------------------------------
@@ -93,7 +104,7 @@ public class Parser {
             parseMethode();
             if (!match(TokenType.EOF)) {
                 throw new ParseException(
-                        "Unerwartetes Token nach Methodenende: " + peek().type(),
+                        "Unerwartetes Token nach Methodenende: " + beschreibe(peek()),
                         peek().position());
             }
             return ParseResult.success();
@@ -140,7 +151,7 @@ public class Parser {
             case NAME -> parseZuweisung();
             default -> throw new ParseException(
                     "Erwartet: Anweisung (Block, Zuweisung, WENN oder SOLANGE), "
-                            + "gefunden: " + peek().type(),
+                            + "gefunden: " + beschreibe(peek()),
                     peek().position());
         }
     }
@@ -205,7 +216,7 @@ public class Parser {
             expect(TokenType.KLAMMERZU);
         } else {
             throw new ParseException(
-                    "Erwartet: NAME, ZAHL oder '(', gefunden: " + peek().type(),
+                    "Erwartet: NAME, ZAHL oder '(', gefunden: " + beschreibe(peek()),
                     peek().position());
         }
     }

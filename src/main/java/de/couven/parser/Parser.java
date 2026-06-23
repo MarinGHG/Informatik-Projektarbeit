@@ -10,7 +10,7 @@ import java.util.List;
 /**
  * Rekursiver-Abstiegs-Parser fuer die volle Grammatik (Maximalanforderung):
  *
- * <pre>
+ * 
  * Methode    -> TYP NAME KLAMMERAUF KLAMMERZU Block
  * Block      -> BLOCKAUF Anwfolg BLOCKZU
  * Anwfolg    -> (Anweisung)*
@@ -22,7 +22,7 @@ import java.util.List;
  * Ausdruck   -> Term (STRICHOP Ausdruck)?
  * Term       -> Faktor (PUNKTOP Term)?
  * Faktor     -> NAME | ZAHL | KLAMMERAUF Ausdruck KLAMMERZU
- * </pre>
+ * 
  *
  * Der Aufrufstack der Methoden bildet das geforderte Stackprinzip ab.
  * Fehler werden intern ueber {@link ParseException} mit Position

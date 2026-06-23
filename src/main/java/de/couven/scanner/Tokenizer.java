@@ -122,11 +122,15 @@ public class Tokenizer {
                         break;
 
                     default:
-                        throw new RuntimeException(
-                                "Ungültiges Zeichen '"
-                                        + c
-                                        + "' in "
-                                        + start);
+                        // Ungueltiges Zeichen: als FEHLER-Token (Nr. 0) aufnehmen
+                        // statt abzubrechen, damit mehrere Fehler gezaehlt werden
+                        // koennen (siehe Token-Tabelle / GUI-Fehlerzaehler).
+                        tokens.add(new Token(
+                                TokenType.FEHLER,
+                                String.valueOf(c),
+                                start));
+                        scanner.advance();
+                        break;
                 }
             }
         }

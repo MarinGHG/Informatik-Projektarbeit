@@ -9,7 +9,7 @@
 | Marin Benke | Product Owner & Developer (Planung, Backlog, Delegation) |
 | Jannis Holtmann | Developer (GUI, UML) |
 | Diana Butsch | Developer (Scanner / Tokenizer) |
-| Jiayi | Developer (Token-Modell, Tests) |
+| Jiayi | Developer (Scanner, Token-Modell, Tests) |
 
 ---
 

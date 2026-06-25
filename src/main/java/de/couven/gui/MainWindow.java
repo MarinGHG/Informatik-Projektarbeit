@@ -1,6 +1,7 @@
 package de.couven.gui;
 
 import javax.swing.*;
+import javax.swing.table.DefaultTableModel;
 import java.awt.*;
 import java.awt.event.FocusAdapter;
 import java.awt.event.FocusEvent;
@@ -168,6 +169,46 @@ public class MainWindow {
 
         JScrollPane scrollPane = new JScrollPane(textArea);
 
+        // --- Token-Dictionary (einblendbar) ---
+        String[] spalten = {"Nr.", "Token", "Beispiel"};
+        Object[][] zeilen = {
+            { 0, "FEHLER",       "@ # $"        },
+            { 1, "KLASSE",       "class"         },
+            { 2, "TYP",          "int, boolean"  },
+            { 3, "BLOCKAUF",     "{"             },
+            { 4, "BLOCKZU",      "}"             },
+            { 5, "SEMIKOLON",    ";"             },
+            { 6, "KLAMMERAUF",   "("             },
+            { 7, "KLAMMERZU",    ")"             },
+            { 8, "ZUWEISUNGSOP", "="             },
+            { 9, "PUNKTOP",      "+ - * /"       },
+            {10, "STRICHOP",     "- (unär)"      },
+            {11, "ZAHL",         "42, 0"         },
+            {12, "NAME",         "x, myVar"      },
+            {13, "VERGLOP",      "== != < >"     },
+            {14, "WENN",         "if"            },
+            {15, "SONST",        "else"          },
+            {16, "SOLANGE",      "while"         },
+            {17, "FUER",         "for"           },
+        };
+        DefaultTableModel tableModel = new DefaultTableModel(zeilen, spalten) {
+            @Override public boolean isCellEditable(int r, int c) { return false; }
+        };
+        JTable dictTable = new JTable(tableModel);
+        dictTable.setFillsViewportHeight(true);
+        dictTable.getColumnModel().getColumn(0).setMaxWidth(40);
+        JScrollPane dictScrollPane = new JScrollPane(dictTable);
+        dictScrollPane.setBorder(BorderFactory.createTitledBorder("Token-Lexikon"));
+        dictScrollPane.setVisible(false);
+
+        JButton dictToggle = new JButton("Lexikon ▼");
+        dictToggle.addActionListener(e -> {
+            boolean sichtbar = !dictScrollPane.isVisible();
+            dictScrollPane.setVisible(sichtbar);
+            dictToggle.setText(sichtbar ? "Lexikon ▲" : "Lexikon ▼");
+            frame.pack();
+        });
+
         // --- Layout für die rechte Seite (Buttons + Counter) ---
 
         // 1. Ein Raster (Grid) für Buttons und Counter: 2 Zeilen, 2 Spalten, 10px Abstand
@@ -179,13 +220,14 @@ public class MainWindow {
 
         // 2. Ein Huellen-Panel, damit das GridLayout nicht in die Laenge gezogen wird.
         // Es heftet das buttonGrid einfach nach oben (NORTH).
-        JPanel rightSideWrapper = new JPanel(new BorderLayout());
+        JPanel rightSideWrapper = new JPanel(new BorderLayout(0, 10));
         rightSideWrapper.add(buttonGrid, BorderLayout.NORTH);
+        rightSideWrapper.add(dictToggle, BorderLayout.CENTER);
 
         // --- Haupt-Panel ---
         JPanel mainPanel = new JPanel();
         mainPanel.setBorder(BorderFactory.createEmptyBorder(30, 30, 30, 30));
-        mainPanel.setLayout(new BorderLayout(15, 0));
+        mainPanel.setLayout(new BorderLayout(15, 10));
 
         // Linke Seite: Eingabefeld oben, Token-Anzeige unten
         JPanel leftPanel = new JPanel(new BorderLayout(0, 10));
@@ -193,8 +235,9 @@ public class MainWindow {
         leftPanel.add(tokenScrollPane, BorderLayout.SOUTH);
 
         // Elemente dem Haupt-Panel zuweisen
-        mainPanel.add(leftPanel, BorderLayout.CENTER); // Textfelder in die Mitte
-        mainPanel.add(rightSideWrapper, BorderLayout.EAST); // Unser neuen rechten Bereich einfügen
+        mainPanel.add(leftPanel, BorderLayout.CENTER);
+        mainPanel.add(rightSideWrapper, BorderLayout.EAST);
+        mainPanel.add(dictScrollPane, BorderLayout.SOUTH);
 
         // --- Fenster-Einstellungen ---
         frame.add(mainPanel);

@@ -11,12 +11,15 @@ import java.util.List;
  * Rekursiver-Abstiegs-Parser fuer die volle Grammatik (Maximalanforderung):
  *
  * <pre>
+ * Programm   -> Klasse | Methode
+ * Klasse     -> KLASSE NAME BLOCKAUF Methode* BLOCKZU
  * Methode    -> TYP NAME KLAMMERAUF KLAMMERZU Block
  * Block      -> BLOCKAUF Anwfolg BLOCKZU
  * Anwfolg    -> (Anweisung)*
- * Anweisung  -> Block | Zuweisung | BedAnw | SolangeAnw
+ * Anweisung  -> Block | Zuweisung | BedAnw | SolangeAnw | FuerAnw
  * BedAnw     -> WENN KLAMMERAUF Vergleich KLAMMERZU Anweisung (SONST Anweisung)?
  * SolangeAnw -> SOLANGE KLAMMERAUF Vergleich KLAMMERZU Anweisung
+ * FuerAnw    -> FUER KLAMMERAUF Zuweisung Vergleich SEMIKOLON NAME ZUWEISUNGSOP Ausdruck KLAMMERZU Anweisung
  * Zuweisung  -> NAME ZUWEISUNGSOP Ausdruck SEMIKOLON
  * Vergleich  -> Ausdruck VERGLOP Ausdruck
  * Ausdruck   -> Term (STRICHOP Ausdruck)?
@@ -101,10 +104,14 @@ public class Parser {
 
     public ParseResult parse() {
         try {
-            parseMethode();
+            if (match(TokenType.KLASSE)) {
+                parseKlasse();
+            } else {
+                parseMethode();
+            }
             if (!match(TokenType.EOF)) {
                 throw new ParseException(
-                        "Unerwartetes Token nach Methodenende: " + beschreibe(peek()),
+                        "Unerwartetes Token nach Programmende: " + beschreibe(peek()),
                         peek().position());
             }
             return ParseResult.success();
@@ -114,6 +121,16 @@ public class Parser {
     }
 
     // --- Aeussere Regeln -------------------------------------------------
+
+    private void parseKlasse() {
+        expect(TokenType.KLASSE);
+        expect(TokenType.NAME);
+        expect(TokenType.BLOCKAUF);
+        while (match(TokenType.TYP)) {
+            parseMethode();
+        }
+        expect(TokenType.BLOCKZU);
+    }
 
     private void parseMethode() {
         expect(TokenType.TYP);
@@ -140,7 +157,8 @@ public class Parser {
         return type == TokenType.BLOCKAUF
                 || type == TokenType.NAME
                 || type == TokenType.WENN
-                || type == TokenType.SOLANGE;
+                || type == TokenType.SOLANGE
+                || type == TokenType.FUER;
     }
 
     private void parseAnweisung() {
@@ -148,9 +166,10 @@ public class Parser {
             case BLOCKAUF -> parseBlock();
             case WENN -> parseBedingteAnweisung();
             case SOLANGE -> parseSolangeAnweisung();
+            case FUER -> parseFuerAnweisung();
             case NAME -> parseZuweisung();
             default -> throw new ParseException(
-                    "Erwartet: Anweisung (Block, Zuweisung, WENN oder SOLANGE), "
+                    "Erwartet: Anweisung (Block, Zuweisung, WENN, SOLANGE oder FUER), "
                             + "gefunden: " + beschreibe(peek()),
                     peek().position());
         }
@@ -172,6 +191,19 @@ public class Parser {
         expect(TokenType.SOLANGE);
         expect(TokenType.KLAMMERAUF);
         parseVergleich();
+        expect(TokenType.KLAMMERZU);
+        parseAnweisung();
+    }
+
+    private void parseFuerAnweisung() {
+        expect(TokenType.FUER);
+        expect(TokenType.KLAMMERAUF);
+        parseZuweisung();           // init:   i = 0;
+        parseVergleich();           // cond:   i < n
+        expect(TokenType.SEMIKOLON);
+        expect(TokenType.NAME);     // update: i = i + 1
+        expect(TokenType.ZUWEISUNGSOP);
+        parseAusdruck();
         expect(TokenType.KLAMMERZU);
         parseAnweisung();
     }

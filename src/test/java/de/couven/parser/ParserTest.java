@@ -161,6 +161,41 @@ class ParserTest {
         }
 
         @Test
+        void einfacheKlasse() {
+            assertOk("class MyClass { int myMethod() { x = 1; } }");
+        }
+
+        @Test
+        void klasseMitMehrerenMethoden() {
+            assertOk("class Foo { void a() { } int b() { x = 1; } }");
+        }
+
+        @Test
+        void klasseOhneMethoden() {
+            assertOk("class Empty { }");
+        }
+
+        @Test
+        void fuerSchleife() {
+            assertOk("void main() { for (i = 0; i < n; i = i + 1) x = 1; }");
+        }
+
+        @Test
+        void fuerSchleifeMitBlock() {
+            assertOk("void main() { for (i = 0; i < n; i = i + 1) { x = i + 1; } }");
+        }
+
+        @Test
+        void ungleichOperator() {
+            assertOk("void main() { if (a != b) x = 1; }");
+        }
+
+        @Test
+        void booleanTyp() {
+            assertOk("boolean check() { }");
+        }
+
+        @Test
         void mehrzeiligerQuelltext() {
             assertOk("""
                     void main() {

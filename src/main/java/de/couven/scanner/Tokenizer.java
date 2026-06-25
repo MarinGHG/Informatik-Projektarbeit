@@ -121,6 +121,16 @@ public class Tokenizer {
                         scanner.advance();
                         break;
 
+                    case '!':
+                        scanner.advance();
+                        if (scanner.current() == '=') {
+                            scanner.advance();
+                            tokens.add(new Token(TokenType.VERGLOP, "!=", start));
+                        } else {
+                            tokens.add(new Token(TokenType.FEHLER, "!", start));
+                        }
+                        break;
+
                     default:
                         // Ungueltiges Zeichen: als FEHLER-Token (Nr. 0) aufnehmen
                         // statt abzubrechen, damit mehrere Fehler gezaehlt werden
@@ -170,7 +180,7 @@ public class Tokenizer {
             case "else" -> new Token(TokenType.SONST, text, start);
             case "while" -> new Token(TokenType.SOLANGE, text, start);
             case "for" -> new Token(TokenType.FUER, text, start);
-            case "int", "String", "void" -> new Token(TokenType.TYP, text, start);
+            case "int", "String", "void", "boolean" -> new Token(TokenType.TYP, text, start);
             default -> new Token(TokenType.NAME, text, start);
         };
     }

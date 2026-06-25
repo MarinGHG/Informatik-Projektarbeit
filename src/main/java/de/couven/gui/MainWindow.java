@@ -220,9 +220,13 @@ public class MainWindow {
 
         // 2. Ein Huellen-Panel, damit das GridLayout nicht in die Laenge gezogen wird.
         // Es heftet das buttonGrid einfach nach oben (NORTH).
-        JPanel rightSideWrapper = new JPanel(new BorderLayout(0, 10));
-        rightSideWrapper.add(buttonGrid, BorderLayout.NORTH);
-        rightSideWrapper.add(dictToggle, BorderLayout.CENTER);
+        dictToggle.setMaximumSize(new Dimension(Integer.MAX_VALUE, dictToggle.getPreferredSize().height));
+
+        JPanel rightSideWrapper = new JPanel();
+        rightSideWrapper.setLayout(new BoxLayout(rightSideWrapper, BoxLayout.Y_AXIS));
+        rightSideWrapper.add(buttonGrid);
+        rightSideWrapper.add(Box.createVerticalStrut(10));
+        rightSideWrapper.add(dictToggle);
 
         // --- Haupt-Panel ---
         JPanel mainPanel = new JPanel();

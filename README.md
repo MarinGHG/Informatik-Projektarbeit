@@ -28,8 +28,6 @@ Das Projekt wurde **agil** entwickelt – Sprintplanung in **Plane**
 (plane.marinbenke.dev, selfhosted) kombiniert mit **GitHub** zur
 Versionskontrolle. Einheitliche IDE: **JetBrains IntelliJ IDEA**.
 
-📑 Präsentationsfolien: [`docs/praesentation.md`](docs/praesentation.md)
-
 ---
 
 ## Komponenten

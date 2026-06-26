@@ -1,6 +1,6 @@
 # Java-Subset-Parser
 
-> Informatik-Projektarbeit · LK Informatik · Gymnasium Couven · Jury-Präsentation 18.06.2026 (Generali)
+> Informatik-Projektarbeit · LK Informatik · Gymnasium Couven · Jury-Präsentation 26.06.2026 (Generali)
 
 ## Team
 
@@ -21,8 +21,8 @@ prüft diese gegen eine kontextfreie Grammatik. Eine **Swing-GUI** erlaubt
 Eingabe, getrenntes Starten von Scanner und Parser sowie sofortiges Feedback
 inkl. Fehlerposition.
 
-Unterstütztes Subset: Methodendeklaration, Zuweisungen, arithmetische Ausdrücke,
-`if/else`, `while`.
+Unterstütztes Subset: Klassendeklaktion, Methodendeklaration, Zuweisungen,
+arithmetische Ausdrücke, `if/else`, `while`, `for`.
 
 Das Projekt wurde **agil** entwickelt – Sprintplanung in **Plane**
 (plane.marinbenke.dev, selfhosted) kombiniert mit **GitHub** zur
@@ -37,7 +37,7 @@ Versionskontrolle. Einheitliche IDE: **JetBrains IntelliJ IDEA**.
 | `de.couven.token` | Token-Typen und Datenmodell |
 | `de.couven.scanner` | Scanner (Lexer) – Quelltext → Tokenliste |
 | `de.couven.parser` | Rekursiver Abstiegsparser – Tokenliste → Syntaxprüfung |
-| `de.couven.gui` | Swing-GUI – Eingabe, Scan-Button, Parse-Button |
+| `de.couven.gui` | Swing-GUI – Eingabe, Scan-Button, Parse-Button, einblendbares Token-Lexikon |
 
 ---
 
@@ -47,7 +47,7 @@ Versionskontrolle. Einheitliche IDE: **JetBrains IntelliJ IDEA**.
 |----|--------|-------|
 | 0 | unbekanntes Zeichen | `fehler` |
 | 1 | `class` | `klasse` |
-| 2 | `void` / `int` / `String` | `typ` |
+| 2 | `void` / `int` / `String` / `boolean` | `typ` |
 | 3 | `{` | `blockauf` |
 | 4 | `}` | `blockzu` |
 | 5 | `;` | `semikolon` |
@@ -58,15 +58,13 @@ Versionskontrolle. Einheitliche IDE: **JetBrains IntelliJ IDEA**.
 | 10 | `+` `-` | `strichop` |
 | 11 | Zahl | `zahl` |
 | 12 | Bezeichner | `name` |
-| 13 | `==` `<` `>` | `verglop` |
+| 13 | `==` `!=` `<` `>` | `verglop` |
 | 14 | `if` | `wenn` |
 | 15 | `else` | `sonst` |
 | 16 | `while` | `solange` |
 | 17 | `for` | `fuer` |
 
 `EOF` (-1) ist ein interner Sentinel und gehört nicht zur Tabelle.
-`klasse` (1) und `fuer` (17) werden vom Scanner erkannt, sind aber (noch) nicht
-Teil der geparsten Grammatik.
 
 ---
 
@@ -86,10 +84,12 @@ FAKTOR     ::= name | zahl | klammerauf AUSDRUCK klammerzu
 ### Maximal (volle Anforderung)
 
 ```
+KLASSE     ::= klasse name blockauf METHODE* blockzu
 ANWFOLG    ::= ANWEISUNG (ANWFOLG)
-ANWEISUNG  ::= BLOCK | ZUWEISUNG | BEDANW | SOLANGEANW
+ANWEISUNG  ::= BLOCK | ZUWEISUNG | BEDANW | SOLANGEANW | FUERANW
 BEDANW     ::= wenn klammerauf VERGLEICH klammerzu ANWEISUNG (sonst ANWEISUNG)
 SOLANGEANW ::= solange klammerauf VERGLEICH klammerzu ANWEISUNG
+FUERANW    ::= fuer klammerauf ZUWEISUNG VERGLEICH semikolon ZUWEISUNG klammerzu ANWEISUNG
 VERGLEICH  ::= AUSDRUCK verglop AUSDRUCK
 ```
 
@@ -116,16 +116,17 @@ java -jar target/java-parser-1.0-SNAPSHOT.jar
 ## Projektstruktur
 
 ```
+run.sh              # Startskript mit HiDPI-JVM-Flags (Wayland/Linux)
 src/
 ├── main/java/de/couven/
 │   ├── Main.java
 │   ├── token/        # TokenType, Token
 │   ├── scanner/      # Scanner
 │   ├── parser/       # Parser
-│   └── gui/          # MainWindow, ...
+│   └── gui/          # MainWindow, Token-Lexikon-Panel
 └── test/java/de/couven/
     ├── scanner/      # ScannerTest
-    └── parser/       # ParserTest
+    └── parser/       # ParserTest (39 Testfälle)
 ```
 
 ---
